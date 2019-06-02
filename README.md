@@ -1,4 +1,4 @@
-# TikZ code snippet for drawing bimetric null cones.
+# TikZ code snippet for drawing bimetric null cones
 
 ## Command: `\nullCones`
 
