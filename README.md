@@ -1,16 +1,16 @@
-# TikZ code snipped for drawing a pair of null cones (NC).
+# TikZ code snippet for drawing bimetric null cones.
 
 ## Command: `\nullCones`
 
 Usage: `\nullCones{pos}{g NC parameterss}{f NC parameters}`
 
-### Parameters (with defaults)
+### NC parameters 
 
-  `x=0, y=1, a=1, b=0.5, rotate = 0`.
+  `x=0, y=1, a=1, b=0.5, rotate = 0` (with default values)
 
--  The top ellipse is at `(x,y)` with axes `(a,b)`. 
+- The top ellipse is at `(x,y)` with axes `(a,b)`. 
 - The null cone is optionally rotated by an angle.
--  Layers can be back, front, or outline.
+- Layers can be back, front, or outline.
 
 ## Command: `\nullConesOutline` and `\nullConesShaded`
 
@@ -18,7 +18,7 @@ Usage: `\nullCones{pos}{g NC parameterss}{f NC parameters}`
 
 - `\nullConesShaded` draws the fully shaded null cones.
 
-- By default `\nullCones = \nullConesShaded` (controlled by `\ifOutline`).
+- By default `\nullCones = \nullConesShaded` (controlled by `\ifOutline` flag).
 
 ## Examples (See: [nullCones.pdf](nullCones.pdf))
 
