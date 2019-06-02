@@ -20,7 +20,7 @@ Usage: `\nullCones{pos}{g NC parameterss}{f NC parameters}`
 
 - By default `\nullCones = \nullConesShaded` (controlled by `\ifOutline` flag).
 
-## Examples (See: [nullCones.pdf](nullCones.pdf))
+## Example (see: [nullCones.pdf](nullCones.pdf))
 
 ```
   \coordinate (nc2) at (-0.5,2.5);
@@ -32,4 +32,8 @@ Usage: `\nullCones{pos}{g NC parameterss}{f NC parameters}`
                  { x= -0.2, y= 0.9, a= 0.9, b= 0.3, rotate = 15 }
 ```
 
-![Null cones example](nullCones.png)
+![Example 1](example1.png)
+
+A more complicated example:
+
+![Example 2](example2.png)
