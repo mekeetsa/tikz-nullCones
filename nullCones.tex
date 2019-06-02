@@ -1,0 +1,223 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Drawing bimetric null cones in TikZ
+%% Copyright (c) 2019 Mikica Kocic, under GPL v3
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.
+%
+% This is a contributed file to the LaTeX2e system.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[10pt,varwidth,preview,border=-2pt]{standalone}
+\usepackage[margin=0cm,nohead]{geometry}
+\usepackage[active,tightpage]{preview}
+
+% Tested with pdflatex and xelatex (the latter produces smaller pdfs).
+%
+% Optional pdflatex flags:
+%
+% \pdfoutput=1
+% \pdfminorversion=4   % Force PDF1.4
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Required packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{tikz}
+\usepackage{ifthen}
+\usepackage{keycommand}
+
+\usetikzlibrary{fadings}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{intersections}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% CODE SNIPPET BEGIN \nullCones, \nullConesOutline, \nullConesShaded
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Flags
+
+\newif\ifOutline  % \Outlinetrue  % Show outline (otherwise shaded null cone)
+\newif\ifIntersections            % Show the intersections between null cones
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%/* Draw a pair of null cones (NC). 
+%
+% Command: \nullCones{pos}{g NC parameterss}{f NC parameters}
+%
+% Parameters (with defaults): x=0, y=1, a=1, b=0.5, rotate = 0.
+%
+%   The top ellipse is at (x,y) with axes (a,b). 
+%   The null cone is optionally rotated by an angle.
+%   Layers can be back, front, or outline.
+%
+% \nullConesOutline draws only an outline of the null cones.
+% \nullConesShaded draws the fully shaded null cones.
+%
+% By default \nullCones = \nullConesShaded (controlled by \ifOutline).
+%
+% Examples:
+%
+%   \coordinate (nc2) at (-0.5,2.5);
+%   \nullCones{nc1}{ x=  0.1, y= 1  , a= 1  , b= 0.3  }
+%                  { x= -0.2, y= 0.9, a= 0.9, b= 0.3  }
+%
+%   \coordinate (nc1) at (-4,2.5);
+%   \nullCones{nc2}{ x=  0.1, y= 1  , a= 1  , b= 0.3, rotate = -5 }
+%                  { x= -0.2, y= 0.9, a= 0.9, b= 0.3, rotate = 15 }
+
+\newcommand{\nullConesOutline}[3]
+{
+  \nullCone[nc=g,#2,layer=outline]{#1}
+  \nullCone[nc=f,#3,layer=outline]{#1}
+}
+
+\newcommand{\nullConesShaded}[3]
+{
+  \foreach \NC in {back,outline,front}
+  {
+    \nullCone[nc=g,#2,layer=\NC]{#1}
+    \nullCone[nc=f,#3,layer=\NC]{#1}
+  }
+}
+
+\ifOutline
+  \let\nullCones\nullConesOutline 
+  \Intersectionsfalse
+\else
+  \let\nullCones\nullConesShaded
+  \Intersectionstrue
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \nullCone draws a null cone of nc=g or nc=f where the top ellipse is 
+%   at (x,y) with axes (a,b). The null cone is optionally rotated by an angle.
+%   Layers can be back, front, or outline.
+
+\newkeycommand{\nullCone}[nc=g,x=0,y=1,a=1,b=0.5,layer=outline,rotate=0][1]
+{
+  \ifthenelse{\equal{\commandkey{nc}}{g}}{
+    \def\NCstyle{blue}
+  }{
+    \def\NCstyle{red}
+  }
+
+  \def\Ellipse{(\commandkey{x},\commandkey{y}) 
+    circle (\commandkey{a} and \commandkey{b})}
+  
+  \ncCoords{\commandkey{x}}{\commandkey{y}}
+           {\commandkey{a}}{\commandkey{b}}
+
+  \ifthenelse{\equal{\commandkey{layer}}{back}}{
+    \begin{scope}[on background layer]
+      \fill [shift={(#1)},rotate=\commandkey{rotate},
+        line cap=round,fill=\NCstyle,
+        path fading=north, fading transform={rotate=45},
+        fill opacity=0.2]
+        \Ellipse
+        ({\Xa},{\Ya}) -- (0,0) -- ({\Xb},{\Yb})
+        \Ellipse;
+    \end{scope}
+  }{}
+  
+  \ifthenelse{\equal{\commandkey{layer}}{front}}
+  {
+    \begin{scope}[on background layer]
+      \begin{scope}[shift={(#1)},rotate=\commandkey{rotate}]
+        \clip ({0.99*\Xa},{0.97*\Ya}) -- (0,0) -- ({0.99*\Xb},{0.97*\Yb});
+        \fill [fill=\NCstyle,
+          path fading=north, fading transform={rotate=45},
+          fill opacity=0.5]
+          \Ellipse
+          ({\Xa},{\Ya}) -- (0,0) -- ({\Xb},{\Yb});
+      \end{scope}
+    \end{scope}
+  }{}
+  
+  \ifthenelse{\equal{\commandkey{layer}}{outline}}
+  {
+    \begin{scope}[on background layer]
+      \draw [shift={(#1)},rotate=\commandkey{rotate},
+         line cap=round,rounded corners=0.01pt,
+         line width=0.45pt,gray!30!\NCstyle,opacity=0.7]
+        ({\Xa},{\Ya}) -- (0,0) -- ({\Xb},{\Yb});
+    \end{scope}
+
+    \ifthenelse{\equal{\commandkey{nc}}{g}}{
+      \draw [\NCstyle,shift={(#1)},rotate=\commandkey{rotate},
+             name path global=gNullCone,line width=0.5pt]
+        \Ellipse;
+    }{
+      \draw [\NCstyle,shift={(#1)},rotate=\commandkey{rotate},
+             name path global=fNullCone,line width=0.5pt]
+        \Ellipse;
+        
+      \ifIntersections
+        \path [
+          name intersections={of=gNullCone and fNullCone,total=\nrXs},
+             /utils/exec={\global\let\nrXs=\nrXs}
+        ];
+        \if\nrXs0\else
+          \foreach \i in {1,...,\nrXs}{
+            \begin{scope}[on background layer]
+              \pgfmathparse{100-(\nrXs-\i)*10}
+              \draw [color=gray!30!magenta!\pgfmathresult,opacity=0.2] 
+                (#1) -- (intersection-\i);
+            \end{scope}
+            % \node at (intersection-\i) {\tiny \i};
+           }
+        \fi
+      \fi % Intersections
+    }
+    
+    \filldraw[line width=0.5pt,violet] (#1) circle (0.1pt);
+  }{}
+}
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \ncCoords{x}{y}{a}{b} calculates the tangent points 
+%   from (0,0) to an ellipse centered at (x,y) with axes a and b.
+%   The TeX code is generated by ncCoords.nb.
+
+\newcommand{\ncCoords}[4]{
+  \def\NCPP{ sqrt(#4^2*(#1)^2 + #3^2*(-#4^2 + (#2)^2)) }
+  \def\NCQQ{ ( #4^2*(#1)^2 + #3^2*(#2)^2 ) }
+  \def\NCRR{ ( #4^2*(#1)^2 + #3^2*(-#4^2 + (#2)^2) ) }
+  \def\Xa{ ((\NCRR)*(#1) + #3^2*(\NCPP)*(#2))/(\NCQQ) }
+  \def\Xb{ ((\NCRR)*(#1) - #3^2*(\NCPP)*(#2))/(\NCQQ) }
+  \def\Ya{ (-(#4^2*(\NCPP)*(#1)) + (\NCRR)*(#2))/(\NCQQ) }
+  \def\Yb{ (#4^2*(\NCPP)*(#1) + (\NCRR)*(#2))/(\NCQQ) }
+}
+
+%*/
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% CODE SNIPPET END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\begin{tikzpicture}[x=10mm,y=10mm,node distance=1mm,yscale=1]
+
+  % Examples:
+  
+  \coordinate (nc1) at (-4,2.5);
+  \coordinate (nc2) at (-0.5,2.5);
+  
+  \nullCones{nc1}{ x=  0.1, y= 1  , a= 1  , b= 0.3  }
+                 { x= -0.2, y= 0.9, a= 0.9, b= 0.3  }
+
+  \nullCones{nc2}{ x=  0.1, y= 1  , a= 1  , b= 0.3, rotate = -5 }
+                 { x= -0.2, y= 0.9, a= 0.9, b= 0.3, rotate = 15 }
+
+\end{tikzpicture}
+
+\end{document}
